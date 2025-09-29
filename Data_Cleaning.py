@@ -226,3 +226,34 @@ print("\n--- [正在保存最终处理结果到文件] ---")
 rfm_df.to_csv('rfm_final_for_modeling.csv')
 print(f"文件 'rfm_final_for_modeling.csv' 已成功保存。")
 print("数据清洗和特征工程阶段完成！")
+
+
+# 步骤1: 设定一个合理的假设利润率
+# 这是一个业务假设，在实际项目中需要和业务方确认。这里我们假设综合利润率为25%。
+PROFIT_MARGIN = 0.25
+
+# 步骤2: 计算每个用户的历史利润贡献
+# 我们在rfm_df上创建一个新列'Profit'
+rfm_df['Profit'] = rfm_df['MonetaryValue'] * PROFIT_MARGIN
+
+# 步骤3: 按Segment分组，聚合计算每个分层的核心LTV指标
+ltv_df = rfm_df.groupby('Segment').agg(
+    Customer_Count = ('Segment', 'size'),  # 计算每个分层的用户数
+    Total_Profit = ('Profit', 'sum')       # 计算每个分层的总利润
+)
+
+# 步骤4: 计算每个分层的人均LTV (我们估算的LTV)
+ltv_df['Avg_LTV_per_Customer'] = ltv_df['Total_Profit'] / ltv_df['Customer_Count']
+
+# 步骤5: 按人均LTV降序排序，并展示结果
+ltv_df_sorted = ltv_df.sort_values(by='Avg_LTV_per_Customer', ascending=False)
+
+# 步骤6: 打印最终的LTV分析报告
+print("\n--- [各用户分层LTV分析报告] ---")
+print(ltv_df_sorted)
+
+
+# ... (这里才是你原来保存文件的代码) ...
+# print("\n--- [正在保存最终处理结果到文件] ---")
+# rfm_df.to_csv('rfm_final_for_modeling.csv')
+# print(f"文件 'rfm_final_for_modeling.csv' 已成功保存。")
